@@ -1,0 +1,29 @@
+# مستندات فارسی - Persian Documentation
+DOCUMENTATION_FA.md
+TECHNICAL_ANALYSIS_FA.md
+QUICK_SUMMARY_FA.md
+
+# فایل‌های پشتیبان - Backup files
+*.bak
+*.backup
+*.tmp
+
+# فایل‌های سیستم - System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# فایل‌های ویرایشگر - Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# لاگ‌ها - Logs
+*.log
+logs/
+
+# فایل‌های موقت - Temporary files
+temp/
+tmp/
