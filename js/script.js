@@ -6,14 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
     addDigisparkAction('keyboard', 'Hello World!', 100); // Add a default Digispark action
     generateDigisparkCode(); // Generate initial code
 
-    // We're making all attacks Digispark-centric, so hide the Android tab.
-    const androidTabButton = document.querySelector('.tab-button[onclick="showTab(\'android\')"]');
-    if (androidTabButton) {
-        androidTabButton.style.display = 'none';
-    }
+    // Note: Android tab is not implemented in this version
+    // All functionality is focused on Digispark payloads
 
     // Attach global listeners
-    document.getElementById('blueprintSelect').addEventListener('change', loadBlueprint);
+    const blueprintSelect = document.getElementById('blueprintSelect');
+    if (blueprintSelect) {
+        blueprintSelect.addEventListener('change', loadBlueprint);
+    }
 
     // Initial load/save listeners
     const saveBtn = document.querySelector('.save-btn');
@@ -1080,7 +1080,10 @@ function loadBlueprint() {
     const outputCode = document.getElementById('outputCode');
 
     if (!selectedBlueprintId) {
-        blueprintDescriptionDiv.innerHTML = '<p>Select a blueprint to see its description and generated payload.</p>';
+        blueprintDescriptionDiv.textContent = '';
+        const p = document.createElement('p');
+        p.textContent = 'Select a blueprint to see its description and generated payload.';
+        blueprintDescriptionDiv.appendChild(p);
         outputCode.value = '';
         return;
     }
@@ -1088,16 +1091,27 @@ function loadBlueprint() {
     const blueprint = attackBlueprints[selectedBlueprintId];
 
     if (!blueprint) {
-        blueprintDescriptionDiv.innerHTML = '<p class="error-message">Blueprint not found!</p>';
+        blueprintDescriptionDiv.textContent = '';
+        const p = document.createElement('p');
+        p.className = 'error-message';
+        p.textContent = 'Blueprint not found!';
+        blueprintDescriptionDiv.appendChild(p);
         outputCode.value = '';
         return;
     }
 
-    blueprintDescriptionDiv.innerHTML = `<p>${blueprint.description}</p>`;
+    blueprintDescriptionDiv.textContent = '';
+    const p = document.createElement('p');
+    p.textContent = blueprint.description;
+    blueprintDescriptionDiv.appendChild(p);
 
     if (blueprint.type === 'digispark') {
         showTab('digispark'); // Switch to Digispark tab
-        document.getElementById('digisparkPayloadActions').innerHTML = ''; // Clear existing actions
+        const actionsContainer = document.getElementById('digisparkPayloadActions');
+        // Clear existing actions safely
+        while (actionsContainer.firstChild) {
+            actionsContainer.removeChild(actionsContainer.firstChild);
+        }
         digisparkActionCounter = 0; // Reset counter
 
         const os = document.getElementById('osSelect').value;
@@ -1110,7 +1124,11 @@ function loadBlueprint() {
         // This 'else' block would handle Android or other types if they were enabled.
         // For this project, it implies an error or an unhandled blueprint type.
         console.warn("Unhandled blueprint type or tab is hidden:", blueprint.type);
-        blueprintDescriptionDiv.innerHTML = '<p class="error-message">Blueprint type not supported in current view or blueprint configuration error!</p>';
+        blueprintDescriptionDiv.textContent = '';
+        const errorP = document.createElement('p');
+        errorP.className = 'error-message';
+        errorP.textContent = 'Blueprint type not supported in current view or blueprint configuration error!';
+        blueprintDescriptionDiv.appendChild(errorP);
         outputCode.value = '';
     }
 }
@@ -1122,7 +1140,11 @@ showTab = (tabId) => {
 
     // When going to blueprints tab, clear blueprint details
     if (tabId === 'blueprints') {
-        document.getElementById('blueprintDescription').innerHTML = '<p>Select a blueprint to see its description and generated payload.</p>';
+        const blueprintDescription = document.getElementById('blueprintDescription');
+        blueprintDescription.textContent = '';
+        const p = document.createElement('p');
+        p.textContent = 'Select a blueprint to see its description and generated payload.';
+        blueprintDescription.appendChild(p);
         document.getElementById('outputCode').value = '';
         document.getElementById('blueprintSelect').value = ''; // Reset blueprint selection
     } else if (tabId === 'digispark') {

@@ -2,11 +2,23 @@
 [![License](https://img.shields.io/badge/license-Educational-red.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Web-blue.svg)](https://github.com)
 [![Language](https://img.shields.io/badge/language-JavaScript-yellow.svg)](https://github.com)
+[![Security](https://img.shields.io/badge/security-enhanced-green.svg)](https://github.com)
 
 ## 🚀 Live Website
 👉 [Click here to view the project](https://nullshams.github.io/Payload/)
 
 > **⚠️ EDUCATIONAL PURPOSE ONLY**: This tool is designed for educational purposes, penetration testing, and authorized security research. Users are responsible for ensuring compliance with all applicable laws and regulations.
+
+## 🔒 Security Notice
+
+This version includes enhanced security measures:
+- ✅ Protection against XSS attacks through safe DOM manipulation
+- ✅ Secure clipboard operations with modern APIs
+- ✅ Input sanitization and validation
+- ✅ Safe HTML generation without innerHTML injections
+- ✅ Modern JavaScript security practices
+
+**Always use this tool responsibly and only on systems you own or have explicit permission to test.**
 
 ## 📖 Overview
 

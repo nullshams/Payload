@@ -5,34 +5,29 @@ function updateAndroidPayloadFields(initialType = null, initialValue = '') {
     const androidPayloadFieldsContainer = document.getElementById('androidPayloadFields');
     const selectedType = initialType || payloadTypeSelect.value;
 
-    let fieldsHtml = '';
-    switch (selectedType) {
-        case 'adb_command':
-            fieldsHtml = `
-                <label for="adbCommand">ADB Shell Command:</label>
-                <input type="text" id="adbCommand" value="${initialValue}" placeholder="e.g., pm list packages">
-                <small>Command to run on the device via 'adb shell'. Requires ADB enabled.</small>
-            `;
-            break;
-        case 'termux_script':
-            fieldsHtml = `
-                <label for="termuxScript">Termux Script:</label>
-                <textarea id="termuxScript" rows="10" placeholder="e.g., pkg install figlet\nfiglet HACKED">${initialValue}</textarea>
-                <small>Script to be executed within the Termux app on Android.</small>
-            `;
-            break;
-        case 'social_engineering':
-            fieldsHtml = `
-                <label for="socialEngText">Social Engineering Message:</label>
-                <textarea id="socialEngText" rows="5" placeholder="e.g., Your phone has been compromised! Click here to fix: [LINK]">${initialValue}</textarea>
-                <small>Text for a pop-up, notification, or message to trick the user. (This is theoretical, Digispark does not directly display messages on Android without a custom script/app)</small>
-            `;
-            break;
-        default:
-            fieldsHtml = '<p>Select a payload type to configure options.</p>';
+    // Clear container safely
+    while (androidPayloadFieldsContainer.firstChild) {
+        androidPayloadFieldsContainer.removeChild(androidPayloadFieldsContainer.firstChild);
     }
 
-    androidPayloadFieldsContainer.innerHTML = fieldsHtml;
+    let elements;
+    switch (selectedType) {
+        case 'adb_command':
+            elements = createAdbCommandFields(initialValue);
+            break;
+        case 'termux_script':
+            elements = createTermuxScriptFields(initialValue);
+            break;
+        case 'social_engineering':
+            elements = createSocialEngineeringFields(initialValue);
+            break;
+        default:
+            elements = createDefaultFields();
+    }
+
+    elements.forEach(element => {
+        androidPayloadFieldsContainer.appendChild(element);
+    });
     
     // Add event listeners to new fields
     const newInputs = androidPayloadFieldsContainer.querySelectorAll('input, textarea');
@@ -41,6 +36,63 @@ function updateAndroidPayloadFields(initialType = null, initialValue = '') {
     });
     
     generateAndroidCode();
+}
+
+function createAdbCommandFields(initialValue = '') {
+    const label = document.createElement('label');
+    label.setAttribute('for', 'adbCommand');
+    label.textContent = 'ADB Shell Command:';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'adbCommand';
+    input.value = initialValue;
+    input.placeholder = 'e.g., pm list packages';
+    
+    const small = document.createElement('small');
+    small.textContent = 'Command to run on the device via \'adb shell\'. Requires ADB enabled.';
+    
+    return [label, input, small];
+}
+
+function createTermuxScriptFields(initialValue = '') {
+    const label = document.createElement('label');
+    label.setAttribute('for', 'termuxScript');
+    label.textContent = 'Termux Script:';
+    
+    const textarea = document.createElement('textarea');
+    textarea.id = 'termuxScript';
+    textarea.rows = 10;
+    textarea.placeholder = 'e.g., pkg install figlet\nfiglet HACKED';
+    textarea.value = initialValue;
+    
+    const small = document.createElement('small');
+    small.textContent = 'Script to be executed within the Termux app on Android.';
+    
+    return [label, textarea, small];
+}
+
+function createSocialEngineeringFields(initialValue = '') {
+    const label = document.createElement('label');
+    label.setAttribute('for', 'socialEngText');
+    label.textContent = 'Social Engineering Message:';
+    
+    const textarea = document.createElement('textarea');
+    textarea.id = 'socialEngText';
+    textarea.rows = 5;
+    textarea.placeholder = 'e.g., Your phone has been compromised! Click here to fix: [LINK]';
+    textarea.value = initialValue;
+    
+    const small = document.createElement('small');
+    small.textContent = 'Text for a pop-up, notification, or message to trick the user. (This is theoretical, Digispark does not directly display messages on Android without a custom script/app)';
+    
+    return [label, textarea, small];
+}
+
+function createDefaultFields() {
+    const p = document.createElement('p');
+    p.textContent = 'Select a payload type to configure options.';
+    return [p];
 }
 
 function generateAndroidCode() {

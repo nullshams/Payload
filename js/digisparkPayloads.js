@@ -52,36 +52,86 @@ function addDigisparkAction(actionType = 'keyboard', value = '', delay = 100) {
     
     const actionId = `digispark-action-${digisparkActionCounter++}`;
     window.digisparkActionCounter = digisparkActionCounter; // Update global counter
-    const actionHtml = `
-        <div class="action-item" id="${actionId}">
-            <div class="form-group">
-                <label for="${actionId}-type">Operation Type:</label>
-                <select id="${actionId}-type" onchange="updateDigisparkActionFields('${actionId}')">
-                    <option value="keyboard" ${actionType === 'keyboard' ? 'selected' : ''}>Keyboard (Type Text)</option>
-                    <option value="press_key" ${actionType === 'press_key' ? 'selected' : ''}>Press Specific Key</option>
-                    <option value="combined_keys" ${actionType === 'combined_keys' ? 'selected' : ''}>Combined Keys (Ctrl+C, Alt+F4)</option>
-                    <option value="mouse_move" ${actionType === 'mouse_move' ? 'selected' : ''}>Mouse (Move)</option>
-                    <option value="mouse_click" ${actionType === 'mouse_click' ? 'selected' : ''}>Mouse (Click)</option>
-                    <option value="mouse_scroll" ${actionType === 'mouse_scroll' ? 'selected' : ''}>Mouse (Scroll)</option>
-                /* <option value="consumer_control" ${actionType === 'consumer_control' ? 'selected' : ''}>Consumer Control (Vol/Media)</option>*/ 
-                    <option value="run_dialog" ${actionType === 'run_dialog' ? 'selected' : ''}>Execute Command (Run Dialog)</option>
-                    <option value="delay" ${actionType === 'delay' ? 'selected' : ''}>Delay (Custom Ms)</option>
-                    <option value="comment" ${actionType === 'comment' ? 'selected' : ''}>Comment (Code Annotation)</option>
-                    <option value="custom_code" ${actionType === 'custom_code' ? 'selected' : ''}>Custom Arduino Code</option>
-                </select>
-            </div>
-            <div class="form-group action-value-field">
-                </div>
-            <div class="form-group action-delay-field">
-                <label for="${actionId}-delay">Delay After Action (ms):</label>
-                <input type="number" id="${actionId}-delay" value="${delay}" min="0">
-            </div>
-            <div class="action-controls">
-                <button onclick="removeDigisparkAction('${actionId}')"><i class="fas fa-trash-alt"></i> Remove</button>
-            </div>
-        </div>
-    `;
-    payloadActionsContainer.insertAdjacentHTML('beforeend', actionHtml);
+    
+    // Create action item container
+    const actionDiv = document.createElement('div');
+    actionDiv.className = 'action-item';
+    actionDiv.id = actionId;
+    
+    // Create type selection
+    const typeFormGroup = document.createElement('div');
+    typeFormGroup.className = 'form-group';
+    
+    const typeLabel = document.createElement('label');
+    typeLabel.setAttribute('for', `${actionId}-type`);
+    typeLabel.textContent = 'Operation Type:';
+    
+    const typeSelect = document.createElement('select');
+    typeSelect.id = `${actionId}-type`;
+    typeSelect.onchange = () => updateDigisparkActionFields(actionId);
+    
+    const options = [
+        {value: 'keyboard', text: 'Keyboard (Type Text)', selected: actionType === 'keyboard'},
+        {value: 'press_key', text: 'Press Specific Key', selected: actionType === 'press_key'},
+        {value: 'combined_keys', text: 'Combined Keys (Ctrl+C, Alt+F4)', selected: actionType === 'combined_keys'},
+        {value: 'mouse_move', text: 'Mouse (Move)', selected: actionType === 'mouse_move'},
+        {value: 'mouse_click', text: 'Mouse (Click)', selected: actionType === 'mouse_click'},
+        {value: 'mouse_scroll', text: 'Mouse (Scroll)', selected: actionType === 'mouse_scroll'},
+        {value: 'run_dialog', text: 'Execute Command (Run Dialog)', selected: actionType === 'run_dialog'},
+        {value: 'delay', text: 'Delay (Custom Ms)', selected: actionType === 'delay'},
+        {value: 'comment', text: 'Comment (Code Annotation)', selected: actionType === 'comment'},
+        {value: 'custom_code', text: 'Custom Arduino Code', selected: actionType === 'custom_code'}
+    ];
+    
+    options.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.text;
+        if (opt.selected) option.selected = true;
+        typeSelect.appendChild(option);
+    });
+    
+    typeFormGroup.appendChild(typeLabel);
+    typeFormGroup.appendChild(typeSelect);
+    
+    // Create value field container
+    const valueFormGroup = document.createElement('div');
+    valueFormGroup.className = 'form-group action-value-field';
+    
+    // Create delay field
+    const delayFormGroup = document.createElement('div');
+    delayFormGroup.className = 'form-group action-delay-field';
+    
+    const delayLabel = document.createElement('label');
+    delayLabel.setAttribute('for', `${actionId}-delay`);
+    delayLabel.textContent = 'Delay After Action (ms):';
+    
+    const delayInput = document.createElement('input');
+    delayInput.type = 'number';
+    delayInput.id = `${actionId}-delay`;
+    delayInput.value = delay;
+    delayInput.min = '0';
+    
+    delayFormGroup.appendChild(delayLabel);
+    delayFormGroup.appendChild(delayInput);
+    
+    // Create action controls
+    const controlsDiv = document.createElement('div');
+    controlsDiv.className = 'action-controls';
+    
+    const removeButton = document.createElement('button');
+    removeButton.onclick = () => removeDigisparkAction(actionId);
+    removeButton.innerHTML = '<i class="fas fa-trash-alt"></i> Remove';
+    
+    controlsDiv.appendChild(removeButton);
+    
+    // Assemble the action item
+    actionDiv.appendChild(typeFormGroup);
+    actionDiv.appendChild(valueFormGroup);
+    actionDiv.appendChild(delayFormGroup);
+    actionDiv.appendChild(controlsDiv);
+    
+    payloadActionsContainer.appendChild(actionDiv);
     updateDigisparkActionFields(actionId, actionType, value); // Initialize fields
     attachDigisparkEventListeners();
 }
@@ -92,116 +142,247 @@ function updateDigisparkActionFields(actionId, initialType = null, initialValue 
     const valueFieldContainer = actionItem.querySelector('.action-value-field');
     const selectedType = initialType || typeSelect.value;
 
-    let valueHtml = '';
+    // Clear existing content safely
+    while (valueFieldContainer.firstChild) {
+        valueFieldContainer.removeChild(valueFieldContainer.firstChild);
+    }
+
+    const elements = createDigisparkValueFields(actionId, selectedType, initialValue);
+    elements.forEach(element => {
+        valueFieldContainer.appendChild(element);
+    });
+    
+    attachDigisparkEventListeners();
+}
+
+function createDigisparkValueFields(actionId, selectedType, initialValue) {
     switch (selectedType) {
         case 'keyboard':
-            valueHtml = `
-                <label for="${actionId}-text">Text to Type:</label>
-                <input type="text" id="${actionId}-text" value="${initialValue}">
-            `;
-            break;
+            return createDigisparkKeyboardFields(actionId, initialValue);
         case 'press_key':
-            const os = document.getElementById('osSelect').value;
-            const osKeys = osDigisparkKeyMap[os];
-            let keyOptions = '';
-            for (const key in osKeys) {
-                const displayKey = key.replace(/_/g, ' ').toUpperCase();
-                keyOptions += `<option value="${osKeys[key]}" ${initialValue === osKeys[key] ? 'selected' : ''}>${displayKey}</option>`;
-            }
-            valueHtml = `
-                <label for="${actionId}-key">Key to Press:</label>
-                <select id="${actionId}-key">
-                    ${keyOptions}
-                </select>
-            `;
-            break;
+            return createDigisparkPressKeyFields(actionId, initialValue);
         case 'combined_keys':
-            let modifierOptions = '';
-            const currentSelectedModifiers = initialValue.modifiers || [];
-            const currentCombinedKey = initialValue.key || '';
-
-            for (const mod in digisparkModifierKeys) {
-                modifierOptions += `
-                    <label>
-                        <input type="checkbox" data-modifier="${digisparkModifierKeys[mod]}" ${currentSelectedModifiers.includes(digisparkModifierKeys[mod]) ? 'checked' : ''}> ${mod}
-                    </label>
-                `;
-            }
-            valueHtml = `
-                <label>Modifier Keys:</label>
-                <div class="checkbox-group">${modifierOptions}</div>
-                <label for="${actionId}-combined-key">Main Key:</label>
-                <input type="text" id="${actionId}-combined-key" value="${currentCombinedKey}" placeholder="e.g., A, 1, F1">
-                <small>Main key (e.g., 'A' or 'KEY_F1'). Use 'KEY_GUI' or 'KEY_COMMAND' for OS key if not using a modifier.</small>
-            `;
-            break;
+            return createDigisparkCombinedKeysFields(actionId, initialValue);
         case 'mouse_move':
-            const [x, y] = (initialValue || '').split(',').map(Number);
-            valueHtml = `
-                <label for="${actionId}-mouse-x">Move X:</label>
-                <input type="number" id="${actionId}-mouse-x" value="${x || 0}">
-                <label for="${actionId}-mouse-y">Move Y:</label>
-                <input type="number" id="${actionId}-mouse-y" value="${y || 0}">
-            `;
-            break;
+            return createDigisparkMouseMoveFields(actionId, initialValue);
         case 'mouse_click':
-            valueHtml = `
-                <label for="${actionId}-mouse-button">Mouse Button:</label>
-                <select id="${actionId}-mouse-button">
-                    <option value="LEFT" ${initialValue === 'LEFT' ? 'selected' : ''}>Left</option>
-                    <option value="RIGHT" ${initialValue === 'RIGHT' ? 'selected' : ''}>Right</option>
-                    <option value="MIDDLE" ${initialValue === 'MIDDLE' ? 'selected' : ''}>Middle</option>
-                </select>
-            `;
-            break;
+            return createDigisparkMouseClickFields(actionId, initialValue);
         case 'mouse_scroll':
-            valueHtml = `
-                <label for="${actionId}-mouse-scroll">Scroll Amount:</label>
-                <input type="number" id="${actionId}-mouse-scroll" value="${initialValue || 0}">
-                <small>Positive for up, negative for down.</small>
-            `;
-            break;
-     /*  case 'consumer_control':
-            valueHtml = `
-                <label for="${actionId}-consumer">Consumer Control:</label>
-                <select id="${actionId}-consumer">
-                    <option value="MEDIA_VOLUME_UP" ${initialValue === 'MEDIA_VOLUME_UP' ? 'selected' : ''}>Volume Up</option>
-                    <option value="MEDIA_VOLUME_DOWN" ${initialValue === 'MEDIA_VOLUME_DOWN' ? 'selected' : ''}>Volume Down</option>
-                    <option value="MEDIA_MUTE" ${initialValue === 'MEDIA_MUTE' ? 'selected' : ''}>Mute</option>
-                    <option value="MEDIA_PLAY_PAUSE" ${initialValue === 'MEDIA_PLAY_PAUSE' ? 'selected' : ''}>Play/Pause</option>
-                    <option value="MEDIA_NEXT" ${initialValue === 'MEDIA_NEXT' ? 'selected' : ''}>Next Track</option>
-                    <option value="MEDIA_PREVIOUS" ${initialValue === 'MEDIA_PREVIOUS' ? 'selected' : ''}>Previous Track</option>
-                </select>
-            `;*/
-            break;
+            return createDigisparkMouseScrollFields(actionId, initialValue);
         case 'run_dialog':
-            valueHtml = `
-                <label for="${actionId}-command">Command to Execute (Run Dialog):</label>
-                <input type="text" id="${actionId}-command" value="${initialValue}" placeholder="e.g., notepad.exe">
-            `;
-            break;
+            return createDigisparkRunDialogFields(actionId, initialValue);
         case 'delay':
-            valueHtml = `
-                <label for="${actionId}-custom-delay">Custom Delay (ms):</label>
-                <input type="number" id="${actionId}-custom-delay" value="${initialValue || 1000}" min="0">
-            `;
-            break;
+            return createDigisparkDelayFields(actionId, initialValue);
         case 'comment':
-            valueHtml = `
-                <label for="${actionId}-comment-text">Comment Text:</label>
-                <input type="text" id="${actionId}-comment-text" value="${initialValue}" placeholder="e.g., Open browser">
-            `;
-            break;
+            return createDigisparkCommentFields(actionId, initialValue);
         case 'custom_code':
-            valueHtml = `
-                <label for="${actionId}-custom-arduino-code">Custom Arduino Code:</label>
-                <textarea id="${actionId}-custom-arduino-code" rows="5" placeholder="e.g., DigiKeyboard.print(&quot;Hello&quot;);">${initialValue}</textarea>
-                <small>Enter valid Arduino/Digispark code here. Each line will be added directly.</small>
-            `;
-            break;
+            return createDigisparkCustomCodeFields(actionId, initialValue);
+        default:
+            return [];
     }
-    valueFieldContainer.innerHTML = valueHtml;
-    attachDigisparkEventListeners();
+}
+
+function createDigisparkKeyboardFields(actionId, initialValue) {
+    const label = document.createElement('label');
+    label.setAttribute('for', `${actionId}-text`);
+    label.textContent = 'Text to Type:';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = `${actionId}-text`;
+    input.value = initialValue;
+    
+    return [label, input];
+}
+
+function createDigisparkPressKeyFields(actionId, initialValue) {
+    const os = document.getElementById('osSelect').value;
+    const osKeys = osDigisparkKeyMap[os];
+    
+    const label = document.createElement('label');
+    label.setAttribute('for', `${actionId}-key`);
+    label.textContent = 'Key to Press:';
+    
+    const select = document.createElement('select');
+    select.id = `${actionId}-key`;
+    
+    for (const key in osKeys) {
+        const displayKey = key.replace(/_/g, ' ').toUpperCase();
+        const option = document.createElement('option');
+        option.value = osKeys[key];
+        option.textContent = displayKey;
+        if (initialValue === osKeys[key]) option.selected = true;
+        select.appendChild(option);
+    }
+    
+    return [label, select];
+}
+
+function createDigisparkCombinedKeysFields(actionId, initialValue) {
+    const currentSelectedModifiers = initialValue.modifiers || [];
+    const currentCombinedKey = initialValue.key || '';
+    
+    const modLabel = document.createElement('label');
+    modLabel.textContent = 'Modifier Keys:';
+    
+    const checkboxGroup = document.createElement('div');
+    checkboxGroup.className = 'checkbox-group';
+    
+    for (const mod in digisparkModifierKeys) {
+        const label = document.createElement('label');
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.setAttribute('data-modifier', digisparkModifierKeys[mod]);
+        if (currentSelectedModifiers.includes(digisparkModifierKeys[mod])) {
+            checkbox.checked = true;
+        }
+        
+        const text = document.createTextNode(` ${mod}`);
+        
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        checkboxGroup.appendChild(label);
+    }
+    
+    const keyLabel = document.createElement('label');
+    keyLabel.setAttribute('for', `${actionId}-combined-key`);
+    keyLabel.textContent = 'Main Key:';
+    
+    const keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.id = `${actionId}-combined-key`;
+    keyInput.value = currentCombinedKey;
+    keyInput.placeholder = 'e.g., A, 1, F1';
+    
+    const small = document.createElement('small');
+    small.textContent = 'Main key (e.g., \'A\' or \'KEY_F1\'). Use \'KEY_GUI\' or \'KEY_COMMAND\' for OS key if not using a modifier.';
+    
+    return [modLabel, checkboxGroup, keyLabel, keyInput, small];
+}
+
+function createDigisparkMouseMoveFields(actionId, initialValue) {
+    const [x, y] = (initialValue || '').split(',').map(Number);
+    
+    const xLabel = document.createElement('label');
+    xLabel.setAttribute('for', `${actionId}-mouse-x`);
+    xLabel.textContent = 'Move X:';
+    
+    const xInput = document.createElement('input');
+    xInput.type = 'number';
+    xInput.id = `${actionId}-mouse-x`;
+    xInput.value = x || 0;
+    
+    const yLabel = document.createElement('label');
+    yLabel.setAttribute('for', `${actionId}-mouse-y`);
+    yLabel.textContent = 'Move Y:';
+    
+    const yInput = document.createElement('input');
+    yInput.type = 'number';
+    yInput.id = `${actionId}-mouse-y`;
+    yInput.value = y || 0;
+    
+    return [xLabel, xInput, yLabel, yInput];
+}
+
+function createDigisparkMouseClickFields(actionId, initialValue) {
+    const label = document.createElement('label');
+    label.setAttribute('for', `${actionId}-mouse-button`);
+    label.textContent = 'Mouse Button:';
+    
+    const select = document.createElement('select');
+    select.id = `${actionId}-mouse-button`;
+    
+    const buttons = [
+        {value: 'LEFT', text: 'Left'},
+        {value: 'RIGHT', text: 'Right'},
+        {value: 'MIDDLE', text: 'Middle'}
+    ];
+    
+    buttons.forEach(button => {
+        const option = document.createElement('option');
+        option.value = button.value;
+        option.textContent = button.text;
+        if (initialValue === button.value) option.selected = true;
+        select.appendChild(option);
+    });
+    
+    return [label, select];
+}
+
+function createDigisparkMouseScrollFields(actionId, initialValue) {
+    const label = document.createElement('label');
+    label.setAttribute('for', `${actionId}-mouse-scroll`);
+    label.textContent = 'Scroll Amount:';
+    
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.id = `${actionId}-mouse-scroll`;
+    input.value = initialValue || 0;
+    
+    const small = document.createElement('small');
+    small.textContent = 'Positive for up, negative for down.';
+    
+    return [label, input, small];
+}
+
+function createDigisparkRunDialogFields(actionId, initialValue) {
+    const label = document.createElement('label');
+    label.setAttribute('for', `${actionId}-command`);
+    label.textContent = 'Command to Execute (Run Dialog):';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = `${actionId}-command`;
+    input.value = initialValue;
+    input.placeholder = 'e.g., notepad.exe';
+    
+    return [label, input];
+}
+
+function createDigisparkDelayFields(actionId, initialValue) {
+    const label = document.createElement('label');
+    label.setAttribute('for', `${actionId}-custom-delay`);
+    label.textContent = 'Custom Delay (ms):';
+    
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.id = `${actionId}-custom-delay`;
+    input.value = initialValue || 1000;
+    input.min = '0';
+    
+    return [label, input];
+}
+
+function createDigisparkCommentFields(actionId, initialValue) {
+    const label = document.createElement('label');
+    label.setAttribute('for', `${actionId}-comment-text`);
+    label.textContent = 'Comment Text:';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = `${actionId}-comment-text`;
+    input.value = initialValue;
+    input.placeholder = 'e.g., Open browser';
+    
+    return [label, input];
+}
+
+function createDigisparkCustomCodeFields(actionId, initialValue) {
+    const label = document.createElement('label');
+    label.setAttribute('for', `${actionId}-custom-arduino-code`);
+    label.textContent = 'Custom Arduino Code:';
+    
+    const textarea = document.createElement('textarea');
+    textarea.id = `${actionId}-custom-arduino-code`;
+    textarea.rows = 5;
+    textarea.placeholder = 'e.g., DigiKeyboard.print("Hello");';
+    textarea.value = initialValue;
+    
+    const small = document.createElement('small');
+    small.textContent = 'Enter valid Arduino/Digispark code here. Each line will be added directly.';
+    
+    return [label, textarea, small];
 }
 
 function removeDigisparkAction(id) {

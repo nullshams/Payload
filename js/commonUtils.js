@@ -3,25 +3,41 @@
 function copyCode() {
     const outputCode = document.getElementById('outputCode');
     if (outputCode && outputCode.value) {
-        outputCode.select();
-        outputCode.setSelectionRange(0, 99999); // For mobile devices
-        
-        // Try modern clipboard API first, fallback to execCommand
-        if (navigator.clipboard) {
+        // Try modern clipboard API first
+        if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(outputCode.value).then(function() {
                 alert('Payload copied to clipboard!');
             }).catch(function(err) {
-                // Fallback to execCommand
-                document.execCommand('copy');
-                alert('Payload copied to clipboard!');
+                console.error('Failed to copy with clipboard API:', err);
+                fallbackCopyTextToClipboard(outputCode.value);
             });
         } else {
-            document.execCommand('copy');
-            alert('Payload copied to clipboard!');
+            fallbackCopyTextToClipboard(outputCode.value);
         }
     } else {
         alert('No payload to copy!');
     }
+}
+
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        alert('Payload copied to clipboard!');
+    } catch (err) {
+        console.error('Fallback: Could not copy text: ', err);
+        alert('Failed to copy to clipboard');
+    }
+    
+    document.body.removeChild(textArea);
 }
 
 function downloadCode() {
@@ -89,7 +105,12 @@ function showTab(tabId) {
         const outputCode = document.getElementById('outputCode');
         
         if (blueprintSelect) blueprintSelect.value = ''; // Reset blueprint selection
-        if (blueprintDescription) blueprintDescription.innerHTML = '<p>Select a blueprint to see its description and generated payload.</p>';
+        if (blueprintDescription) {
+            blueprintDescription.textContent = '';
+            const p = document.createElement('p');
+            p.textContent = 'Select a blueprint to see its description and generated payload.';
+            blueprintDescription.appendChild(p);
+        }
         if (outputCode) outputCode.value = ''; // Clear output
     }
 }
@@ -221,7 +242,10 @@ function loadConfig() {
 
                 const actionsContainer = document.getElementById('digisparkPayloadActions');
                 if (actionsContainer) {
-                    actionsContainer.innerHTML = '';
+                    // Clear container safely
+                    while (actionsContainer.firstChild) {
+                        actionsContainer.removeChild(actionsContainer.firstChild);
+                    }
                 }
                 
                 if (typeof window.digisparkActionCounter !== 'undefined') {
