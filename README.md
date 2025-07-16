@@ -21,7 +21,7 @@
 
 ### 🛠️ Attack Categories
 
-#### 📊 Data Exfiltration (سرقت اطلاعات)
+#### 📊 Data Exfiltration 
 - Wi-Fi Password Stealer
 - Screenshot & Exfiltration
 - Browser History Grabber
@@ -29,31 +29,31 @@
 - AWS Credentials Grabber
 - Chrome Password Stealer
 
-#### 🔒 Persistence & Backdoor (پایداری و بک‌دور)
+#### 🔒 Persistence & Backdoor 
 - PowerShell Reverse Shell
 - Persistent Backdoor Installation
 - SSH Key Addition
 - Sticky Keys Backdoor
 
-#### 💥 Disruption & Sabotage (اختلال و خرابکاری)
+#### 💥 Disruption & Sabotage 
 - Windows Defender Disabling
 - Network Disruption
 - System Shutdown/Restart
 - Drive Formatting (⚠️ DESTRUCTIVE)
 
-#### 🎭 Prank Attacks (حملات شوخی)
+#### 🎭 Prank Attacks 
 - Rickroll Payload
 - Fake Error Messages
 - Mouse/Keyboard Chaos
 - Multiple Window Spawning
 
-#### 🔍 Information Gathering (جمع‌آوری اطلاعات)
+#### 🔍 Information Gathering 
 - System Information Collection
 - Network Configuration Grabbing
 - Installed Programs Enumeration
 - Directory Listing
 
-#### ⬆️ Privilege Escalation (افزایش سطح دسترسی)
+#### ⬆️ Privilege Escalation 
 - UAC Bypass Techniques
 - User Account Manipulation
 - Firewall Disabling
@@ -120,22 +120,6 @@ void loop() {
 }
 ```
 
-## 📁 Project Structure
-
-```
-payload-forge/
-├── index.html              # Main application interface
-├── css/
-│   └── style.css          # Cyberpunk-themed styling
-├── js/
-│   ├── script.js          # Main application logic
-│   ├── digisparkPayloads.js  # Digispark-specific functions
-│   ├── androidPayloads.js    # Android payload generation
-│   └── commonUtils.js        # Shared utility functions
-└── assets/
-    └── images/
-        └── background.jpg     # Cyberpunk background image
-```
 
 ## 🔧 Technical Details
 
